@@ -1,4 +1,4 @@
-import os, errno, shutil
+import os, errno, shutil, pwd
 
 while True:
     project = input('Enter the name of project (project.local): ')
