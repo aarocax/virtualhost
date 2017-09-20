@@ -27,6 +27,10 @@ def existsDirectory(directory):
 def createDirectory(directory):
     try:
         os.makedirs(directory)
+        os.chmod(directory, 0o775)
+        uid =  pwd.getpwnam('root').pw_uid
+        gid = pwd.getpwnam('www-data').pw_uid
+        os.chown(directory, uid, gid) # set user:group as root:www-data
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
@@ -40,11 +44,17 @@ def createVirtualFile(project):
         if e.errno != errno.EEXIST:
             raise
 
+def enableVirtualHost(project):
+    status = os.system('sudo a2ensite '+project)
+    print(status)
+
 def updateHostsFile(project):
-    pass
+    with open("/etc/hosts","a") as f:
+        f.write('127.0.0.1 '+ project + '\n')
 
 def restartApache():
-    pass
+    status = os.system('sudo service apache2 restart')
+    print(status)
 
 if existsDirectory(docroot+ "/" +project):
     print('El directorio existe')
@@ -58,11 +68,17 @@ if existsDirectory(docroot+ "/" +project):
         shutil.rmtree(docroot+ "/" +project)
         createDirectory(docroot+ "/" +project)
         createVirtualFile(project)
+        enableVirtualHost(project)
+        updateHostsFile(project)
+        restartApache()
     else:
         pass
 else:
     print('El directorio NO existe')
     createDirectory(docroot+ "/" +project)
     createVirtualFile(project)
+    enableVirtualHost(project)
+    updateHostsFile(project)
+    restartApache()
 
 
